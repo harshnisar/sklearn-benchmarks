@@ -2,6 +2,7 @@ import sys
 import pandas as pd
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.cross_validation import StratifiedShuffleSplit
+from sklearn.preprocessing import StandardScaler
 import itertools
 
 dataset = sys.argv[1]
@@ -21,15 +22,21 @@ for (learning_rate, n_estimators) in itertools.product([0.01, 0.1, 0.5, 1.0, 10.
 
         training_features = input_data.loc[training_indices].drop('class', axis=1).values
         training_classes = input_data.loc[training_indices, 'class'].values
-    
+
         testing_features = input_data.loc[testing_indices].drop('class', axis=1).values
         testing_classes = input_data.loc[testing_indices, 'class'].values
-    
+
+        ss = StandardScaler()
+        training_features = ss.fit_transform(training_features.astype(float))
+        testing_features = ss.transform(testing_features.astype(float))
+
         # Create and fit the model on the training data
         try:
             clf = AdaBoostClassifier(learning_rate=learning_rate, n_estimators=n_estimators)
             clf.fit(training_features, training_classes)
             testing_score = clf.score(testing_features, testing_classes)
+        except KeyboardInterrupt:
+            sys.exit(1)
         except:
             continue
     

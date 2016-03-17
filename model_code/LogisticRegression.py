@@ -2,6 +2,7 @@ import sys
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.cross_validation import StratifiedShuffleSplit
+from sklearn.preprocessing import StandardScaler
 import itertools
 
 dataset = sys.argv[1]
@@ -24,12 +25,18 @@ for (C, penalty) in itertools.product([0.01, 0.1, 0.5,1.0, 10.0, 50.0, 100.0],
     
         testing_features = input_data.loc[testing_indices].drop('class', axis=1).values
         testing_classes = input_data.loc[testing_indices, 'class'].values
-    
+
+        ss = StandardScaler()
+        training_features = ss.fit_transform(training_features.astype(float))
+        testing_features = ss.transform(testing_features.astype(float))
+
         # Create and fit the model on the training data
         try:
             clf = LogisticRegression(C=C, penalty=penalty)
             clf.fit(training_features, training_classes)
             testing_score = clf.score(testing_features, testing_classes)
+        except KeyboardInterrupt:
+            sys.exit(1)
         except:
             continue
     

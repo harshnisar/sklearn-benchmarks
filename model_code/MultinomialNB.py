@@ -2,6 +2,7 @@ import sys
 import pandas as pd
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.cross_validation import StratifiedShuffleSplit
+from sklearn.preprocessing import MinMaxScaler
 import itertools
 
 dataset = sys.argv[1]
@@ -24,12 +25,18 @@ for (alpha, fit_prior) in itertools.product([0.0, 0.1, 0.25, 0.5, 0.75, 1.0],
     
         testing_features = input_data.loc[testing_indices].drop('class', axis=1).values
         testing_classes = input_data.loc[testing_indices, 'class'].values
-    
+
+        mms = MinMaxScaler()
+        training_features = mms.fit_transform(training_features.astype(float))
+        testing_features = mms.transform(testing_features.astype(float))
+
         # Create and fit the model on the training data
         try:
             clf = MultinomialNB(alpha=alpha, fit_prior=fit_prior)
             clf.fit(training_features, training_classes)
             testing_score = clf.score(testing_features, testing_classes)
+        except KeyboardInterrupt:
+            sys.exit(1)
         except:
             continue
     
